@@ -1,6 +1,5 @@
 ### Spent-API
 
-```markdown
 # Spent-API
 
 ## Overview
