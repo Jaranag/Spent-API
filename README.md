@@ -1,5 +1,3 @@
-### Spent-API
-
 # Spent-API
 
 ## Overview
