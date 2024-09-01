@@ -3,6 +3,7 @@ package com.grupo.spent.controller;
 import java.io.UnsupportedEncodingException;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.repository.query.Param;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.AuthenticationException;
@@ -40,10 +41,10 @@ public class UserController {
             if (userService.existsUserByEmail(registerDto.getEmail())) {
                 throw new HttpException(HttpStatus.BAD_REQUEST, "This User already exists.");
             }
+            System.out.println(request);
             User user = userService.register(registerDto.getEmail(), registerDto.getUsername(), registerDto.getName(),
                     registerDto.getPassword(), getSiteURL(request));
-            // String token = userService.login(registerDto.getEmail(), registerDto.getPassword());
-            String token = "";
+            String token = userService.login(registerDto.getEmail(), registerDto.getPassword());
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body(new RegisterResponseDto(user.getEmail(), user.getUsername(), user.getFirstName(), token));
         } catch (HttpException e) {
@@ -54,6 +55,15 @@ public class UserController {
     private String getSiteURL(HttpServletRequest request) {
         String siteURL = request.getRequestURL().toString();
         return siteURL.replace(request.getServletPath(), "");
+    }
+
+    @GetMapping("/verify")
+    public ResponseEntity<?> verifyUser(@Param("code") String code) {
+        if (userService.verify(code)) {
+            return ResponseEntity.status(HttpStatus.OK).body("verify_success");
+        } else {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("verify_fail");
+        }
     }
 
     @PostMapping("/login")

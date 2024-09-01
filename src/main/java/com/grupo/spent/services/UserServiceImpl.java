@@ -37,8 +37,11 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private JavaMailSender mailSender;
 
+    @Override
     public User register(String email, String username, String name, String password, String siteURL)
-            throws UnsupportedEncodingException, MessagingException {
+            throws UnsupportedEncodingException, MessagingException, NotFoundException {
+        if (existsUserByEmail(email))
+            throw new NotFoundException("User already exists with this email: " + email);
         String encryptedPassword = passwordEncoder.encode(password);
         String randomCode = UUID.randomUUID().toString();
         User user = User.builder()
@@ -56,6 +59,7 @@ public class UserServiceImpl implements UserService {
         return userRepository.save(user);
     }
 
+    @Override
     public String login(String email, String password) {
         var usernamePassword = new UsernamePasswordAuthenticationToken(email, password);
         var authUser = authenticationManager.authenticate(usernamePassword);
@@ -63,6 +67,7 @@ public class UserServiceImpl implements UserService {
         return accessToken;
     }
 
+    @Override
     public User findUserByUsername(String username) throws NotFoundException {
         User user = userRepository.findUserByUsername(username);
         if (user == null) {
@@ -71,6 +76,7 @@ public class UserServiceImpl implements UserService {
             return user;
     }
 
+    @Override
     public User findUserByEmail(String email) throws NotFoundException {
         User user = userRepository.getUserByEmail(email);
         if (user == null) {
@@ -79,6 +85,7 @@ public class UserServiceImpl implements UserService {
             return user;
     }
 
+    @Override
     public boolean existsUserByEmail(String email) {
         return userRepository.existsUserByEmail(email);
     }
@@ -86,8 +93,8 @@ public class UserServiceImpl implements UserService {
     private void sendVerificationEmail(User user, String siteURL)
             throws MessagingException, UnsupportedEncodingException {
         String toAddress = user.getEmail();
-        String fromAddress = "Your email address";
-        String senderName = "Your company name";
+        String fromAddress = "dfreixes32@gmail.com";
+        String senderName = "SPENT";
         String subject = "Please verify your registration";
         String content = "Dear [[name]],<br>"
                 + "Please click the link below to verify your registration:<br>"
@@ -110,5 +117,20 @@ public class UserServiceImpl implements UserService {
         helper.setText(content, true);
 
         mailSender.send(message);
+    }
+
+    @Override
+    public boolean verify(String verificationCode) {
+        User user = userRepository.findByVerificationCode(verificationCode);
+
+        if (user == null || user.isEnabled()) {
+            return false;
+        } else {
+            user.setVerificationCode(null);
+            user.setEnabled(true);
+            userRepository.save(user);
+
+            return true;
+        }
     }
 }
