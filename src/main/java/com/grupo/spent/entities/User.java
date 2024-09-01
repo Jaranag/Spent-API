@@ -69,7 +69,13 @@ public class User implements UserDetails {
     @Enumerated(EnumType.STRING)
     private UserRoleEnum role;
 
-    @JsonIgnoreProperties({"userCreator", "eventsParticipants"})
+    @Column(name = "verification_code", length = 64)
+    private String verificationCode;
+
+    @Column(nullable = false)
+    private boolean enabled;
+
+    @JsonIgnoreProperties({ "userCreator", "eventsParticipants" })
     @Fetch(FetchMode.JOIN)
     @OneToMany(mappedBy = "userCreator")
     private List<Event> eventsCreated;
