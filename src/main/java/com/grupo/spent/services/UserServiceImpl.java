@@ -52,7 +52,6 @@ public class UserServiceImpl implements UserService {
                 .role(UserRoleEnum.USER)
                 .registerDate(LocalDate.now())
                 .rating(0.0)
-                .enabled(false)
                 .verificationCode(randomCode)
                 .build();
         sendVerificationEmail(user, siteURL);
@@ -122,12 +121,12 @@ public class UserServiceImpl implements UserService {
     @Override
     public boolean verify(String verificationCode) {
         User user = userRepository.findByVerificationCode(verificationCode);
-
-        if (user == null || user.isEnabled()) {
+        System.out.println(user.isVerified());
+        if (user == null || user.isVerified()) {
             return false;
         } else {
             user.setVerificationCode(null);
-            user.setEnabled(true);
+            user.setVerified(true);
             userRepository.save(user);
 
             return true;
