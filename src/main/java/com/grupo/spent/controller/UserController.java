@@ -1,6 +1,7 @@
 package com.grupo.spent.controller;
 
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.query.Param;
@@ -41,12 +42,11 @@ public class UserController {
             if (userService.existsUserByEmail(registerDto.getEmail())) {
                 throw new HttpException(HttpStatus.BAD_REQUEST, "This User already exists.");
             }
-            System.out.println(request);
+
             User user = userService.register(registerDto.getEmail(), registerDto.getUsername(), registerDto.getName(),
                     registerDto.getPassword(), getSiteURL(request));
-            String token = userService.login(registerDto.getEmail(), registerDto.getPassword());
             return ResponseEntity.status(HttpStatus.CREATED)
-                    .body(new RegisterResponseDto(user.getEmail(), user.getUsername(), user.getFirstName(), token));
+                    .body(new RegisterResponseDto(user.getEmail(), user.getUsername(), user.getFirstName()));
         } catch (HttpException e) {
             return ResponseEntity.status(e.getStatus()).body(e.getMessage());
         }
@@ -60,9 +60,13 @@ public class UserController {
     @GetMapping("/verify")
     public ResponseEntity<?> verifyUser(@Param("code") String code) {
         if (userService.verify(code)) {
-            return ResponseEntity.status(HttpStatus.OK).body("verify_success");
+            return ResponseEntity.status(HttpStatus.FOUND)
+                    .location(URI.create("http://localhost:5173/verify-success"))
+                    .build();
         } else {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("verify_fail");
+            return ResponseEntity.status(HttpStatus.FOUND)
+                    .location(URI.create("http://localhost:5173/verify-fail"))
+                    .build();
         }
     }
 
@@ -71,7 +75,11 @@ public class UserController {
         try {
             var accessToken = userService.login(loginDto.getEmail(), loginDto.getPassword());
             User user = userService.findUserByEmail(loginDto.getEmail());
-            return ResponseEntity.status(HttpStatus.OK).body(new LoginResponseDto(user.getUsername(), accessToken));
+            if (user.isVerified()) {
+                return ResponseEntity.status(HttpStatus.OK).body(new LoginResponseDto(user.getUsername(), accessToken));
+            }
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User account is not verified");
+
         } catch (AuthenticationException ex) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials.");
         }

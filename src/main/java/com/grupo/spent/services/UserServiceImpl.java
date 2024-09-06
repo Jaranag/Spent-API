@@ -121,7 +121,6 @@ public class UserServiceImpl implements UserService {
     @Override
     public boolean verify(String verificationCode) {
         User user = userRepository.findByVerificationCode(verificationCode);
-        System.out.println(user.isVerified());
         if (user == null || user.isVerified()) {
             return false;
         } else {
