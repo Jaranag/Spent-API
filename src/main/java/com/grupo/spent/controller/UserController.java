@@ -26,6 +26,7 @@ import com.grupo.spent.exceptions.NotFoundException;
 import com.grupo.spent.services.UserService;
 
 import jakarta.mail.MessagingException;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 
 @RestController
@@ -39,7 +40,7 @@ public class UserController {
     UserService userService;
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody @Valid RegisterDto registerDto)
+    public ResponseEntity<?> register(@RequestBody @Valid RegisterDto registerDto, HttpServletRequest request)
             throws NotFoundException, UnsupportedEncodingException, MessagingException {
         try {
             if (userService.existsUserByEmail(registerDto.getEmail())) {
@@ -47,7 +48,7 @@ public class UserController {
             }
 
             User user = userService.register(registerDto.getEmail(), registerDto.getUsername(), registerDto.getName(),
-                    registerDto.getPassword(), getSiteURL());
+                    registerDto.getPassword(), getSiteURL(request));
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body(new RegisterResponseDto(user.getEmail(), user.getUsername(), user.getFirstName()));
         } catch (HttpException e) {
@@ -55,19 +56,20 @@ public class UserController {
         }
     }
 
-    private String getSiteURL() {
-        return siteUrl;
+    private String getSiteURL(HttpServletRequest request) {
+        String siteURL = request.getRequestURL().toString();
+        return siteURL.replace(request.getServletPath(), "");
     }
 
     @GetMapping("/verify")
     public ResponseEntity<?> verifyUser(@Param("code") String code) {
         if (userService.verify(code)) {
             return ResponseEntity.status(HttpStatus.FOUND)
-                    .location(URI.create(siteUrl+ "/verify-success"))
+                    .location(URI.create("https://spent-front-end-lac.vercel.app/verify-success"))
                     .build();
         } else {
             return ResponseEntity.status(HttpStatus.FOUND)
-                    .location(URI.create(siteUrl+ "/verify-fail"))
+                    .location(URI.create("https://spent-front-end-lac.vercel.app/verify-fail"))
                     .build();
         }
     }
