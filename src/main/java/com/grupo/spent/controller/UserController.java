@@ -4,6 +4,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.repository.query.Param;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,18 +26,20 @@ import com.grupo.spent.exceptions.NotFoundException;
 import com.grupo.spent.services.UserService;
 
 import jakarta.mail.MessagingException;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/")
 public class UserController {
 
+    @Value("${site.url}")
+    private String siteUrl;
+
     @Autowired
     UserService userService;
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody @Valid RegisterDto registerDto, HttpServletRequest request)
+    public ResponseEntity<?> register(@RequestBody @Valid RegisterDto registerDto)
             throws NotFoundException, UnsupportedEncodingException, MessagingException {
         try {
             if (userService.existsUserByEmail(registerDto.getEmail())) {
@@ -44,7 +47,7 @@ public class UserController {
             }
 
             User user = userService.register(registerDto.getEmail(), registerDto.getUsername(), registerDto.getName(),
-                    registerDto.getPassword(), getSiteURL(request));
+                    registerDto.getPassword(), getSiteURL());
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body(new RegisterResponseDto(user.getEmail(), user.getUsername(), user.getFirstName()));
         } catch (HttpException e) {
@@ -52,20 +55,19 @@ public class UserController {
         }
     }
 
-    private String getSiteURL(HttpServletRequest request) {
-        String siteURL = request.getRequestURL().toString();
-        return siteURL.replace(request.getServletPath(), "");
+    private String getSiteURL() {
+        return siteUrl;
     }
 
     @GetMapping("/verify")
     public ResponseEntity<?> verifyUser(@Param("code") String code) {
         if (userService.verify(code)) {
             return ResponseEntity.status(HttpStatus.FOUND)
-                    .location(URI.create("https://spent-front-end-lac.vercel.app/verify-success"))
+                    .location(URI.create(siteUrl+ "/verify-success"))
                     .build();
         } else {
             return ResponseEntity.status(HttpStatus.FOUND)
-                    .location(URI.create("https://spent-front-end-lac.vercel.app/verify-fail"))
+                    .location(URI.create(siteUrl+ "/verify-fail"))
                     .build();
         }
     }
