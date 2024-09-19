@@ -5,7 +5,6 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -26,9 +25,6 @@ import lombok.AllArgsConstructor;
 @Service
 @AllArgsConstructor
 public class UserServiceImpl implements UserService {
-
-    @Value("${MAIL_USERNAME}")
-    private String mailUsername;
 
     @Autowired
     UserRepository userRepository;
@@ -97,7 +93,7 @@ public class UserServiceImpl implements UserService {
             throws MessagingException, UnsupportedEncodingException {
         String toAddress = user.getEmail();
         String senderName = "SPENT";
-        String fromAddress = mailUsername;
+        String fromAddress = "spentcontactinfo@gmail.com";
         String subject = "Please verify your registration";
         String content = "Dear [[name]],<br>"
                 + "Please click the link below to verify your registration:<br>"
