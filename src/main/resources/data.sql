@@ -41,3 +41,5 @@ INSERT INTO sports (name, description) VALUES
 ('Urban Trekking', 'Long-distance hiking through urban areas and parks.'),
 ('Volleyball Court', 'Team sport played with a ball and high net.'),
 ('Yoga', 'Practice of yoga in parks, beaches, or open spaces.');
+
+ON DUPLICATE KEY UPDATE name = VALUES(name);
