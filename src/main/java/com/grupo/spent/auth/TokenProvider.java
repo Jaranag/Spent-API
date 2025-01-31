@@ -15,10 +15,10 @@ import com.grupo.spent.entities.User;
 
 @Service
 public class TokenProvider {
-    @Value("${jwt.secret}")
+    @Value("${jwtSecret}")
     private String JWT_SECRET;
 
-    @Value("${jwt.valid-time}")
+    @Value("${jwtValidTime}")
     private String JWT_VALID_TIME;
 
     public String generateAccessToken(User user) {
