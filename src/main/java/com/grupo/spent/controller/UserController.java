@@ -61,11 +61,11 @@ public class UserController {
     public ResponseEntity<?> verifyUser(@Param("code") String code) {
         if (userService.verify(code)) {
             return ResponseEntity.status(HttpStatus.FOUND)
-                    .location(URI.create("https://spent-alpha.vercel.app/verify-success"))
+                    .location(URI.create("http://localhost:5173/verify-success"))
                     .build();
         } else {
             return ResponseEntity.status(HttpStatus.FOUND)
-                    .location(URI.create("https://spent-alpha.vercel.app/verify-fail"))
+                    .location(URI.create("http://localhost:5173/verify-fail"))
                     .build();
         }
     }
